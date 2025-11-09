@@ -1,5 +1,6 @@
 import pygame
 import sys
+from maze import Maze
 
 WINDOW_WIDTH = 800
 WINDOW_HEIGHT = 600
@@ -16,6 +17,8 @@ def main():
 
     clock = pygame.time.Clock()
 
+    maze = Maze(cell_size=40)
+
     running = True
     while running:
         for event in pygame.event.get():
@@ -23,6 +26,8 @@ def main():
                 running = False
 
         screen.fill(WHITE)
+
+        maze.draw(screen)
 
         pygame.display.flip()
 
