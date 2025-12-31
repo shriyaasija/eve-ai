@@ -14,19 +14,21 @@ GRAY = (150, 150, 150)
 def main():
     pygame.init()
     screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
-    pygame.display.set_caption("EveAI - Genetic Algorithm Maze Learner")
+    pygame.display.set_caption("AdamAI - Genetic Algorithm Maze Learner")
     clock = pygame.time.Clock()
     
     font = pygame.font.Font(None, 36)
     small_font = pygame.font.Font(None, 24)
     
     maze = Maze(cell_size=40)
-    population = Population(maze, population_size=20, max_moves=100)
+    population = Population(maze, population_size=50, max_moves=100)
     
-    # control simulation speed
+    # Control simulation
     show_all_agents = True
     frame_counter = 0
-    frames_per_move = 5  # agents move every 5 frames 
+    frames_per_move = 2  # Start a bit faster to see evolution
+    mutation_rate = 0.01  # 1% mutation rate
+    auto_evolve = True  # Automatically create next generation
     
     running = True
     while running:
@@ -40,25 +42,36 @@ def main():
                 elif event.key == pygame.K_SPACE:
                     show_all_agents = not show_all_agents
                     print(f"Show all agents: {show_all_agents}")
-                elif event.key == pygame.K_UP:  # Speed up
+                elif event.key == pygame.K_UP:
                     frames_per_move = max(1, frames_per_move - 1)
                     print(f"Speed: {frames_per_move} frames per move")
-                elif event.key == pygame.K_DOWN:  # Slow down
+                elif event.key == pygame.K_DOWN:
                     frames_per_move += 1
                     print(f"Speed: {frames_per_move} frames per move")
+                elif event.key == pygame.K_e:
+                    # Manual evolution trigger
+                    if population.is_generation_complete():
+                        population.evolve(mutation_rate)
+                elif event.key == pygame.K_a:
+                    # Toggle auto-evolution
+                    auto_evolve = not auto_evolve
+                    print(f"Auto-evolve: {auto_evolve}")
         
-        # update population only every N frames
+        # Update population
         frame_counter += 1
         if frame_counter >= frames_per_move:
             frame_counter = 0
             if not population.is_generation_complete():
                 population.update()
+            elif auto_evolve:
+                # Automatically evolve when generation completes
+                population.evolve(mutation_rate)
         
-        # draw everything
+        # Draw everything
         screen.fill(WHITE)
         maze.draw(screen)
         
-        # draw agents
+        # Draw agents
         if show_all_agents:
             for agent in population.agents:
                 if agent.is_alive:
@@ -67,10 +80,10 @@ def main():
                     pygame.draw.circle(screen, GRAY, (pixel_x, pixel_y), 3)
         else:
             best_agent = population.get_best_agent()
-            if best_agent:
+            if best_agent and best_agent.is_alive:
                 best_agent.draw(screen, maze.cell_size)
         
-        # draw status text
+        # Draw status
         alive_count = sum(1 for a in population.agents if a.is_alive)
         best_agent = population.get_best_agent()
         best_fitness = best_agent.fitness if best_agent else 0
@@ -79,11 +92,12 @@ def main():
         text = font.render(status_text, True, BLACK)
         screen.blit(text, (10, 10))
         
-        # instructions
+        # Instructions
         instructions = [
             "SPACE: Toggle view (all/best)",
-            "R: Reset population",
-            "UP/DOWN: Speed control"
+            "UP/DOWN: Speed control",
+            "A: Toggle auto-evolve",
+            "E: Evolve manually",
         ]
         y_offset = 50
         for instruction in instructions:
@@ -91,14 +105,9 @@ def main():
             screen.blit(inst_text, (10, y_offset))
             y_offset += 25
         
-        # speed indicator
-        speed_text = small_font.render(f"Speed: {frames_per_move} frames/move", True, BLACK)
+        # Speed and auto-evolve indicator
+        speed_text = small_font.render(f"Speed: {frames_per_move} | Auto: {auto_evolve}", True, BLACK)
         screen.blit(speed_text, (10, y_offset + 10))
-        
-        # generation complete message
-        if population.is_generation_complete():
-            complete_text = font.render("Generation Complete! (Press R to reset)", True, (255, 0, 0))
-            screen.blit(complete_text, (100, 250))
         
         pygame.display.flip()
         clock.tick(FPS)
