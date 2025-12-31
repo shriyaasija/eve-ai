@@ -69,3 +69,20 @@ class Agent:
         pixel_y = self.y * cell_size + cell_size // 2
 
         pygame.draw.circle(screen, colour, (pixel_x, pixel_y), cell_size // 3)
+
+    def calculate_fitness(self, goal_pos):
+        """calculate fitness based on distance to goal"""
+        # distance to goal 
+        distance = abs(self.x - goal_pos[0]) + abs(self.y - goal_pos[1])
+
+        # fitness is inverse of distance 
+        self.fitness = 1.0 / (distance + 1)
+
+        if self.reached_goal:
+            self.fitness += 100
+
+        # penalty for dying early
+        if not self.is_alive and not self.reached_goal:
+            self.fitness *= 0.5
+        
+        return self.fitness

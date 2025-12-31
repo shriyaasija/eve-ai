@@ -42,3 +42,15 @@ class Population:
         for agent in self.agents:
             agent.reset()
         self.all_dead = False
+
+    def calculate_all_fitness(self):
+        """calculate fitness for all agents"""
+        for agent in self.agents:
+            agent.calculate_fitness(self.maze.goal_pos)
+    
+    def is_generation_complete(self):
+        """check if all agents are done"""
+        if self.all_dead:
+            # calculate fitness when generation is complete
+            self.calculate_all_fitness()
+        return self.all_dead
